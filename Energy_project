@@ -1,1 +1,47 @@
-rfffg
+#define BLYNK_TEMPLATE_ID           "TMPL3dqHeqcxB"
+#define BLYNK_TEMPLATE_NAME         "Quickstart Template"
+#define BLYNK_AUTH_TOKEN            "sZJ4df2_M64LFqkEkTciXpql9MnGEynx"
+#define BLYNK_PRINT Serial
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "Energy";
+char pass[] = "12345678";
+
+#include "ACS712.h"
+ACS712 sensor(ACS712_30A, A0);
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(LED_BUILTIN, OUTPUT);
+  sensor.calibrate();
+  delay(10);
+  Blynk.begin(auth, ssid, pass, "blynk.cloud", 80);
+  digitalWrite(LED_BUILTIN, LOW);
+}
+
+void loop() 
+{
+  Blynk.run();
+  float U = 150;
+  float I = sensor.getCurrentAC();
+  float P = U * I;
+   if (I < 0.56) 
+   {
+     I=0.0;
+   }
+   Serial.println(String("I = ") + I + " A"); 
+   Blynk.virtualWrite(V0, I);
+     if (P <95.45) 
+   {
+     P=0.0;
+   } 
+  
+  Serial.println(String("P = ") + P + " Watts");
+  Blynk.virtualWrite(V1, P);
+    if (P >300) 
+   {
+     Blynk.logEvent("alert_over");
+   } 
+  delay(500);
+}
